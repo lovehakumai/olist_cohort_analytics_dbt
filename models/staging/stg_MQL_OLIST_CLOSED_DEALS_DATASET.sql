@@ -1,5 +1,5 @@
 with source as (
-    select * from {{ source('olist_raw', 'OLIST_CLOSED_DEALS_DATASET') }}
+    select * from {{ source('olist_raw', 'MQL_OLIST_CLOSED_DEALS_DATASET') }}
 ),
 renamed as (
     select

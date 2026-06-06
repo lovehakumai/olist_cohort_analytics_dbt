@@ -6,10 +6,10 @@ sources:
     database: KAGGLE_OLIST_DEV
     schema: PUBLIC
     tables:
-      - name: OLIST_CLOSED_DEALS_DATASET       
+      - name: MQL_OLIST_MARKETING_QUALIFIED_LEADS_DATASET
+      - name: MQL_OLIST_CLOSED_DEALS_DATASET       
       - name: OLIST_CUSTOMERS_DATASET          
       - name: OLIST_GEOLOCATION_DATASET
-      - name: OLIST_MARKETING_QUALIFIED_LEADS_DATASET
       - name: OLIST_ORDER_ITEMS_DATASET
       - name: OLIST_ORDER_PAYMENTS_DATASET
       - name: OLIST_ORDER_REVIEWS_DATASET
