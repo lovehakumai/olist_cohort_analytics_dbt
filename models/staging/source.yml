@@ -177,4 +177,3 @@ sources:
             data_type: varchar
 
 
-{# dbt run-operation generate_base_model --args '{"source_name": "public", "table_name": "OLIST_ORDERS_DATASET"}' #}
