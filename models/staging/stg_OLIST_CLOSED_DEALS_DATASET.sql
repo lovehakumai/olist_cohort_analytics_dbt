@@ -7,7 +7,7 @@ renamed as (
         seller_id,
         sdr_id,
         sr_id,
-        won_date,
+        TO_TIMESTAMP(won_date) AS won_date,
         business_segment,
         lead_type,
         lead_behaviour_profile,

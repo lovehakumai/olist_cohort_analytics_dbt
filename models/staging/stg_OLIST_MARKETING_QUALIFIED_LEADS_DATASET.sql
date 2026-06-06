@@ -4,7 +4,7 @@ with source as (
 renamed as (
     select
         mql_id,
-        first_contact_date,
+        TO_DATE(first_contact_date) AS first_contact_date,
         landing_page_id,
         origin
     from source
