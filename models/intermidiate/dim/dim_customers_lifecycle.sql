@@ -5,90 +5,90 @@ cus_mst AS (
 )
 , ord_mst AS ( 
     SELECT *
-        , DATE_TRUNC('month', order_purchase_timestamp) AS order_purchase_month
     FROM {{ ref('stg_OLIST_ORDERS_DATASET') }} 
-)
-, cus_address AS (
-    SELECT *
-    FROM {{ref('stg_OLIST_CUSTOMERS_DATASET')}}
 )
 , ord_payments AS (
     SELECT * 
     FROM {{ref('stg_OLIST_ORDER_PAYMENTS_DATASET')}}
-)
-, cus_dim_fst_purchase AS (
-    SELECT 
-        customer_unique_id
-        , customer_city
-        , customer_state
-        , order_purchase_month AS first_purchase_month
-        , order_id AS first_purchase_order_id
-    FROM cus_mst 
-    LEFT JOIN ord_mst 
-        USING(customer_id)
-    QUALIFY 
-        ROW_NUMBER() OVER (PARTITION BY customer_unique_id ORDER BY order_purchase_timestamp) = 1
-)
-, cus_dim_add_payment AS (
-    SELECT 
-        customer_unique_id
-        , customer_city
-        , customer_state
-        , first_purchase_month
-        , first_purchase_order_id
-        , payment_type AS first_payment_type
-    FROM cus_dim_fst_purchase AS fst_purchase
-    LEFT JOIN ord_payments
-        ON fst_purchase.first_purchase_order_id = ord_payments.order_id
-    QUALIFY 
-        ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY payment_value DESC) = 1 
 )
 , get_criteria AS (
     SELECT 
         MAX(order_purchase_timestamp) AS grand_last_purchased_at
     FROM ord_mst 
 )
-, cus_dim_status_raw AS (
-    SELECT 
-        customer_unique_id
-        , MIN(order_purchase_timestamp) AS first_purchased_at
-        , MAX(order_purchase_timestamp) AS last_purchased_at
-        , COUNT(DISTINCT order_id) AS total_orders
-    FROM cus_mst
-    LEFT JOIN ord_mst 
-        USING(customer_id)
-    GROUP BY 
-        customer_unique_id
-)
-, cus_dim_status AS (
-    SELECT 
-        customer_unique_id
-        , first_purchased_at
-        , last_purchased_at
-        , total_orders
-        , CASE 
-            WHEN total_orders = 1 AND DATEDIFF('day', last_purchased_at, grand_last_purchased_at) > 90 THEN 'One Time'
-            WHEN DATEDIFF('day', last_purchased_at, grand_last_purchased_at) <= 30 THEN 'Active'
-            WHEN DATEDIFF('day', last_purchased_at, grand_last_purchased_at) <= 90 THEN 'At Risk'
-            ELSE 'Churned'
-        END AS customer_status
-    FROM cus_dim_status_raw
-    CROSS JOIN get_criteria
-)
-, dim_customer_lifecycle AS (
+, int_cus_orders AS (
     SELECT 
         customer_unique_id
         , customer_city
         , customer_state
-        , first_purchase_month
-        , first_purchase_order_id
-        , first_payment_type
-        , first_purchased_at
-        , last_purchased_at
-        , total_orders
-        , customer_status
-    FROM cus_dim_add_payment 
-    INNER JOIN cus_dim_status
-        USING(customer_unique_id)
+        , order_id
+        , order_purchase_timestamp
+    FROM cus_mst 
+    LEFT JOIN ord_mst 
+        USING(customer_id)
 )
-SELECT * FROM dim_customer_lifecycle
+, cus_dim_base AS (
+    SELECT 
+        customer_unique_id
+        , customer_city
+        , customer_state
+    FROM int_cus_orders
+    GROUP BY 
+        customer_unique_id
+        , customer_city
+        , customer_state
+)
+, cus_dim_purchase_at AS (
+    SELECT 
+        customer_unique_id
+        , MIN(order_purchase_timestamp) AS first_purchase_at
+        , MAX(order_purchase_timestamp) AS last_purchase_at
+        , COUNT(DISTINCT order_id) AS total_orders
+    FROM int_cus_orders
+    GROUP BY 
+        customer_unique_id
+)
+, cus_dim_fst_order AS (
+    SELECT 
+        customer_unique_id
+        , order_id AS first_purchase_order_id
+        , customer_city
+        , customer_state
+    FROM int_cus_orders
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY customer_unique_id ORDER BY order_purchase_timestamp) = 1
+)
+, cus_dim_payments AS (
+    SELECT 
+        order_id
+        , payment_type
+    FROM ord_payments AS base 
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY payment_value DESC) = 1
+)
+, cus_dim_add_attr AS (
+    SELECT 
+        customer_unique_id
+        , DATE_TRUNC('month', first_purchase_at) AS first_purchase_month
+        , first_purchase_at
+        , last_purchase_at
+        , total_orders
+        , customer_city
+        , customer_state
+        , first_purchase_order_id
+        , payment_type AS first_payment_type
+        , CASE 
+            WHEN total_orders = 1 AND DATEDIFF('day', last_purchase_at, grand_last_purchased_at) > 90 THEN 'One Time'
+            WHEN DATEDIFF('day', last_purchase_at, grand_last_purchased_at) <= 30 THEN 'Active'
+            WHEN DATEDIFF('day', last_purchase_at, grand_last_purchased_at) <= 90 THEN 'At Risk'
+            ELSE 'Churned'
+        END AS customer_status
+    FROM cus_dim_base AS base 
+    LEFT JOIN cus_dim_purchase_at
+        USING(customer_unique_id)
+    LEFT JOIN cus_dim_fst_order
+        USING(customer_unique_id)
+    LEFT JOIN cus_dim_payments
+        ON cus_dim_fst_order.first_purchase_order_id = cus_dim_payments.order_id
+    CROSS JOIN get_criteria
+)
+
+SELECT * FROM cus_dim_add_attr
