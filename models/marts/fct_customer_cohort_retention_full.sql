@@ -1,36 +1,35 @@
 WITH 
-fct_customer_monthly_summary AS (
+fact_base AS (
     SELECT * 
-    FROM {{ref('fct_customer_monthly_summary')}}
+    FROM {{ref('fct_customer_retention_raw')}}
 )
-, dim_customer_lifecycle AS (
-    SELECT * 
-    FROM {{ref('dim_customer_lifecycle')}}
-)
-, customer_cohort_retention_raw AS (
+, calender AS (
     SELECT 
-        customer_unique_id
-        {# fact要素 #}
-        , order_purchase_month
-        , monthly_orders
-        , monthly_revenue
-        {# dimension要素 #}
-        , first_purchase_month
-        , first_purchase_at
-        , last_purchase_at
-        , total_orders
-        , customer_city
-        , customer_state
-        , first_payment_type
-        , customer_status
-        {# 初回から何ヶ月目の購入かを示すカラムを作成 #}
-        , DATEDIFF('month', first_purchase_month, order_purchase_month) AS months_after_first_purchase
-    FROM fct_customer_monthly_summary
-    LEFT JOIN dim_customer_lifecycle
-        USING(customer_unique_id)
+        DATE_TRUNC("month", cl_date) AS year_month
+    FROM {{ref('stg_COMMON_CALENDER')}}
+    GROUP BY 
+        DATE_TRUNC("month", cl_date)
 )
-SELECT * FROM customer_cohort_retention_raw
-
+, tmp_fact_full AS (
+    SELECT 
+        NVL(customer_unique_id, NULL) AS customer_unique_id
+        , NVL(order_purchase_month, cal.year_month) AS year_month
+        , NVL(monthly_orders, NULL) AS monthly_orders
+        , NVL(monthly_revenue, NULL) AS monthly_revenue
+        {# dimension要素 #}
+        , NVL(first_purchase_month, NULL) AS first_purchase_month
+        , NVL(first_purchase_at, NULL) AS first_purchase_at
+        , NVL(last_purchase_at, NULL) AS last_purchase_at
+        , NVL(total_orders, NULL) AS total_orders
+        , NVL(customer_city, NULL) AS customer_city
+        , NVL(customer_state, NULL) AS customer_state
+        , NVL(first_payment_type, NULL) AS first_payment_type
+        , NVL(customer_status, NULL) AS customer_status
+    FROM fact_base AS base 
+    FULL JOIN calender AS cal 
+        ON base.order_purchase_month = cal.year_month 
+)
+SELECT * FROM tmp_fact_full
 {# , customer_cohort_retention AS ( #}
     {# SELECT  #}
         {# first_purchase_month #}

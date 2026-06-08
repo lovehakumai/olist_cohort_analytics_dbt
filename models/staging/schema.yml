@@ -60,3 +60,4 @@ models:
             combination_of_columns:
               - order_id 
               - payment_sequential
+  - name: stg_COMMON_CALENDER
