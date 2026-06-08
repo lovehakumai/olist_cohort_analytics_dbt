@@ -21,7 +21,6 @@ fct_customer_monthly_summary AS (
         , total_orders
         , customer_city
         , customer_state
-        , first_purchase_order_id
         , first_payment_type
         , customer_status
         {# 初回から何ヶ月目の購入かを示すカラムを作成 #}
@@ -30,7 +29,9 @@ fct_customer_monthly_summary AS (
     LEFT JOIN dim_customer_lifecycle
         USING(customer_unique_id)
 )
-, customer_cohort_retention AS (
+SELECT * FROM customer_cohort_retention_raw
+;
+{# , customer_cohort_retention AS (
     SELECT 
         first_purchase_month
         , months_after_first_purchase
@@ -79,4 +80,4 @@ SELECT
 FROM cohort_retantion_spined 
 ORDER BY 
     first_purchase_month
-    , months_after_first_purchase
+    , months_after_first_purchase #}
