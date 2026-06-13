@@ -59,7 +59,7 @@ jobs:
         run: dbt test
     
       - name: Generate dbt Docs
-        run: 
+        run: |
           dbt docs generate --profiles-dir ~/.dbt 
     
       - name: Combine Docs into Standalone HTML
@@ -76,4 +76,4 @@ jobs:
     
       - name: Deploy to Github Pages
         id: deployment
-        uses: actions/deploy-pages
+        uses: actions/deploy-pages@v4
