@@ -9,6 +9,7 @@ on:
 jobs:
   dbt_test_job:
     runs-on: ubuntu-latest
+    environment: snowflake_trial
 
     steps:
       - name: Checkout repository
