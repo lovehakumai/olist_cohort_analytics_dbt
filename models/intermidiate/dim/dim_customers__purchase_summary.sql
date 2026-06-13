@@ -27,7 +27,7 @@ cus_mst AS ( SELECT * FROM {{ ref('stg_OLIST_CUSTOMERS_DATASET') }})
         cus_orders.customer_unique_id
         , cus_orders.customer_city
         , cus_orders.customer_state
-        , order_payment.payment_type
+        , order_payment.payment_type AS main_payment_type
     FROM cus_orders 
     LEFT JOIN order_payment 
     ON cus_orders.order_id = order_payment.order_id

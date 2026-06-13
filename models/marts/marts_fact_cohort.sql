@@ -39,6 +39,7 @@ fact_base AS (SELECT * FROM {{ref('fct_customer_monthly_summary')}})
         , dim_base.customer_state
         , dim_base.first_purchase_order_id
         , dim_base.customer_status
+        , dim_base.main_payment_type
     FROM date_spine
     LEFT JOIN dim_base 
     ON date_spine.customer_unique_id = dim_base.customer_unique_id

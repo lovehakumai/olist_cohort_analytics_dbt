@@ -1,0 +1,6 @@
+version: 2
+
+models:
+  - name: dim_customer_lifecycle 
+  
+  - name: fct_customer_cohort_retention_full

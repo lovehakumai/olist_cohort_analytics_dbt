@@ -13,6 +13,7 @@ int_cus_first_payment AS (SELECT * FROM {{ref('dim_customers__first_payment')}})
         , first_purchase_order_id
         , customer_status
         , total_orders
+        , main_payment_type
     FROM int_cus_first_payment
     LEFT JOIN int_cus_purchase_summary
     USING(customer_unique_id)
