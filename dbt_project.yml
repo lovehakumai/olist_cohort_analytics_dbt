@@ -37,4 +37,6 @@ models:
       +materialized: view
     marts: 
       +materialized: table
+      
+      
     # Config indicated by + and applies to all files under models/example/

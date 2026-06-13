@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: dim_customers__purchase_summary
+    columns:
+      - name: customer_unique_id
+        tests:
+          - unique
+  - name: dim_customers__first_payment
+    columns:
+      - name: customer_unique_id
+        tests: 
+          - unique

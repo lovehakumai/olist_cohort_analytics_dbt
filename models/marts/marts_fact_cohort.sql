@@ -1,12 +1,7 @@
 WITH 
-fact_base AS (
-    SELECT * 
-    FROM {{ref('fct_customer_monthly_summary')}}
-)
-, dim_base AS (
-    SELECT * 
-    FROM {{ref('dim_customer_lifecycle')}}
-)
+fact_base AS (SELECT * FROM {{ref('fct_customer_monthly_summary')}})
+, dim_base AS (SELECT * FROM {{ref('marts_dim_cohort')}})
+
 , calender_my AS (
     SELECT 
         DATE_TRUNC("month", cl_date) AS year_month
@@ -35,14 +30,14 @@ fact_base AS (
         , COALESCE(fact_base.monthly_orders, 0) AS monthly_orders
         , COALESCE(fact_base.monthly_revenue, 0) AS monthly_revenue
         , DATEDIFF(month, dim_base.first_purchase_month, date_spine.year_month) AS months_after_fst_purchase
-        , dim_base.first_purchase_month
+        , dim_base.first_purchase_month::DATE AS first_purchase_month
         , dim_base.first_purchase_at
+        , dim_base.last_purchase_month::DATE AS last_purchase_month
         , dim_base.last_purchase_at
         , dim_base.total_orders
         , dim_base.customer_city
         , dim_base.customer_state
         , dim_base.first_purchase_order_id
-        , dim_base.first_payment_type
         , dim_base.customer_status
     FROM date_spine
     LEFT JOIN dim_base 
