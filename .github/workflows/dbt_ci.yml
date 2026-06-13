@@ -30,16 +30,16 @@ jobs:
       - name: Set up dbt profiles.yml 
         run: |
           mkdir -p ~/.dbt 
-          cat <<EOF>> ~/.dbt/profiles.yml 
+          cat << 'EOF' >> ~/.dbt/profiles.yml 
           olist_cohort_analytics_dbt:
             outputs:
               ci_target:
                 type: snowflake
-                account: ${{secrets.SF_ACCOUNT}}
-                user: ${{secrets.SF_USER}}
-                password: ${{secrets.SF_PASSWORD}}
-                role: ${{secrets.SF_ROLE}}
-                warehouse: ${{secrets.SF_WAREHOUSE}}
+                account: ${{ secrets.SF_ACCOUNT }}
+                user: ${{ secrets.SF_USER }}
+                password: ${{ secrets.SF_PASSWORD }}
+                role: ${{ secrets.SF_ROLE }}
+                warehouse: ${{ secrets.SF_WAREHOUSE }}
                 database: KAGGLE_OLIST_DEV
                 schema: DBT_DEV
             target: ci_target
