@@ -6,6 +6,15 @@ on:
     branches:
       - main
 
+permissions:
+  content: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   dbt_test_job:
     runs-on: ubuntu-latest
@@ -48,3 +57,27 @@ jobs:
     
       - name: Run dbt test
         run: dbt test
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - Generate dbt Docs
+        run: |
+          dbt docs generate --profiles-dir .
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+    
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './target'
+    
+      - name: Deploy to Girhub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
