@@ -1,7 +1,31 @@
+{{ 
+    config(
+        materialized = 'incremental',
+        unique_key = ['customer_unique_id', 'year_month'],
+        cluster_by = ['year_month']
+    )
+ }}
 WITH 
-fact_base AS (SELECT * FROM {{ref('fct_customer_monthly_summary')}})
-, dim_base AS (SELECT * FROM {{ref('marts_dim_cohort')}})
-
+dim_base AS (
+    SELECT * 
+    FROM {{ref('marts_dim_cohort')}}
+    {% if is_incremental() %}
+    WHERE customer_unique_id IN (
+        SELECT customer_unique_id
+        FROM {{ref('marts_dim_cohort')}}
+        WHERE last_purchase_at >= (SELECT MAX(last_purchase_at) FROM {{ this }})
+    )
+    {% endif %}
+)
+, fact_base AS (
+    SELECT * 
+    FROM {{ref('fct_customer_monthly_summary')}}
+    {% if is_incremental() %}
+    WHERE customer_unique_id IN (
+        SELECT customer_unique_id IN (SELECT customer_unique_id FROM dim_base)
+    )
+    {% endif %}
+)
 , calender_my AS (
     SELECT 
         DATE_TRUNC("month", cl_date) AS year_month

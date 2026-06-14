@@ -3,7 +3,8 @@ cus_mst AS ( SELECT * FROM {{ ref('stg_OLIST_CUSTOMERS_DATASET') }})
 , ord_amt AS (SELECT *FROM {{ ref('stg_OLIST_ORDER_PAYMENTS_DATASET') }})
 
 , ord_mst AS ( 
-    SELECT *
+    SELECT 
+        *
         , DATE_TRUNC('month', order_purchase_timestamp) AS order_purchase_month
     FROM {{ ref('stg_OLIST_ORDERS_DATASET') }} 
 )

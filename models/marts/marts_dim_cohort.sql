@@ -1,3 +1,9 @@
+{{ 
+    config(
+        materialized = 'incremental',
+        unique_key = 'customer_unique_id'
+    )
+}}
 WITH 
 int_cus_first_payment AS (SELECT * FROM {{ref('dim_customers__first_payment')}})
 , int_cus_purchase_summary AS ( SELECT * FROM {{ref('dim_customers__purchase_summary')}})
@@ -19,3 +25,7 @@ int_cus_first_payment AS (SELECT * FROM {{ref('dim_customers__first_payment')}})
     USING(customer_unique_id)
 )
 SELECT * FROM result_mart
+
+{% if is_incremental() %}
+    WHERE last_purchase_at >= (SELECT MAX(last_purchase_at) FROM {{this}})
+{% endif %}

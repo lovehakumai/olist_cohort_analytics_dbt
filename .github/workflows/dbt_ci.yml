@@ -19,6 +19,8 @@ jobs:
   dbt_test_job:
     runs-on: ubuntu-latest
     environment: snowflake_trial
+    env:
+      SF_PRIVATE_KEY: ${{ secrets.SF_PRIVATE_KEY }}
 
     steps:
       - name: Checkout repository
@@ -47,7 +49,7 @@ jobs:
                 type: snowflake
                 account: ${{ secrets.SF_ACCOUNT }}
                 user: ${{ secrets.SF_USER }}
-                password: ${{ secrets.SF_PASSWORD }}
+                private_key: "{{env_var('SF_PRIVATE_KEY')}}"
                 role: ${{ secrets.SF_ROLE }}
                 warehouse: ${{ secrets.SF_WAREHOUSE }}
                 database: KAGGLE_OLIST_DEV
