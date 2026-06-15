@@ -8,3 +8,14 @@ models:
             combination_of_columns:
               - customer_unique_id
               - order_purchase_month
+    columns:
+      - name: customer_unique_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customers__first_payment')
+                field: customer_unique_id
+          - relationships:
+              arguments:
+                to: ref('dim_customers__purchase_summary')
+                field: customer_unique_id
